@@ -705,7 +705,8 @@ public:
      * but probably there is some buffering register in which data
      * elements are kept after the fifo is emptied.
      */
-    *fifo_ = 0;
+    // Not needed on Pi4?
+    // *fifo_ = 0;
 
     sleep_hint_us_ = sleep_hints_us_[c];
     start_time_ = *s_Timer1Mhz;

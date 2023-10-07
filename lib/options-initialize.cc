@@ -453,8 +453,8 @@ bool RGBMatrix::Options::Validate(std::string *err_in) const {
     success = false;
   }
 
-  if (pwm_lsb_nanoseconds < 50 || pwm_lsb_nanoseconds > 3000) {
-    err->append("Invalid range of pwm-lsb-nanoseconds (50..3000 allowed).\n");
+  if (pwm_lsb_nanoseconds < 0 || pwm_lsb_nanoseconds > 3000) {
+    err->append("Invalid range of pwm-lsb-nanoseconds (0..3000 allowed).\n");
     success = false;
   }
 

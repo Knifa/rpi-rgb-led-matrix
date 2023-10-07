@@ -44,29 +44,38 @@ public:
   gpio_bits_t RequestInputs(gpio_bits_t inputs);
 
   // Set the bits that are '1' in the output. Leave the rest untouched.
-  inline void SetBits(gpio_bits_t value) {
-    if (!value) return;
+  inline void SetBits(gpio_bits_t value, bool delay = true, int delay_time = -1) {
+    if (delay_time == -1)
+      delay_time = slowdown_;
+
     WriteSetBits(value);
-    for (int i = 0; i < slowdown_; ++i) {
-      WriteSetBits(value);
-    }
+
+    if (delay)
+      Delay(delay_time);
   }
 
   // Clear the bits that are '1' in the output. Leave the rest untouched.
-  inline void ClearBits(gpio_bits_t value) {
-    if (!value) return;
+  inline void ClearBits(gpio_bits_t value, bool delay = true, int delay_time = -1) {
+    if (delay_time == -1)
+      delay_time = slowdown_;
+
     WriteClrBits(value);
-    for (int i = 0; i < slowdown_; ++i) {
-      WriteClrBits(value);
-    }
+
+    if (delay)
+      Delay(delay_time);
   }
 
   // Write all the bits of "value" mentioned in "mask". Leave the rest untouched.
-  inline void WriteMaskedBits(gpio_bits_t value, gpio_bits_t mask) {
-    // Writing a word is two operations. The IO is actually pretty slow, so
-    // this should probably  be unnoticable.
-    ClearBits(~value & mask);
-    SetBits(value & mask);
+  inline void WriteMaskedBits(gpio_bits_t value, gpio_bits_t mask, \
+                              bool delay = true, int delay_time = -1) {
+    if (delay_time == -1)
+      delay_time = slowdown_;
+
+    WriteClrBits(~value & mask);
+    WriteSetBits(value & mask);
+
+    if (delay)
+      Delay(delay_time);
   }
 
   inline gpio_bits_t Read() const { return ReadRegisters() & input_bits_; }
@@ -75,6 +84,21 @@ public:
   static bool IsPi4();
 
 private:
+  inline void Delay(int delay_time) const {
+    switch(slowdown_) {
+      case -1:
+#if __ARM_ARCH >= 7
+        asm volatile("dsb\tst");
+#endif
+        break;
+      case 0:
+        break;
+      default:
+        for (int n = 0; n < delay_time; n++)
+          *gpio_clr_bits_low_ = 0;
+    }
+  }
+
   inline gpio_bits_t ReadRegisters() const {
     return (static_cast<gpio_bits_t>(*gpio_read_bits_low_)
 #ifdef ENABLE_WIDE_GPIO_COMPUTE_MODULE
