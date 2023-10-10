@@ -99,7 +99,7 @@ public:
 
   virtual void SetRowAddress(GPIO *io, int row) {
     if (row == last_row_) return;
-    io->WriteMaskedBits(row_lookup_[row], row_mask_, true, 1);
+    io->WriteMaskedBits(row_lookup_[row], row_mask_, false);
     last_row_ = row;
   }
 
@@ -874,7 +874,7 @@ void Framebuffer::DumpToMatrix(GPIO *io, int pwm_low_bit) {
       // Setting address and strobing needs to happen in dark time.
       row_setter_->SetRowAddress(io, d_row);
 
-      io->SetBits(h.strobe, true, 4);   // Strobe in the previously clocked in row.
+      io->SetBits(h.strobe, true, 5);   // Strobe in the previously clocked in row.
       io->ClearBits(h.strobe, false);
 
       // Now switch on for the sleep time necessary for that bit-plane.

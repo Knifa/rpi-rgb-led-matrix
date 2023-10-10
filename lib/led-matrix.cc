@@ -188,13 +188,13 @@ public:
       }
 
       // Read input bits.
-      const gpio_bits_t inputs = io_->Read();
-      if (inputs != last_gpio_bits) {
-        last_gpio_bits = inputs;
-        MutexLock l(&input_sync_);
-        gpio_inputs_ = inputs;
-        pthread_cond_signal(&input_change_);
-      }
+      // const gpio_bits_t inputs = io_->Read();
+      // if (inputs != last_gpio_bits) {
+      //   last_gpio_bits = inputs;
+      //   MutexLock l(&input_sync_);
+      //   gpio_inputs_ = inputs;
+      //   pthread_cond_signal(&input_change_);
+      // }
 
       ++frame_count;
       ++low_bit_sequence;
