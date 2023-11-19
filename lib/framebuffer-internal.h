@@ -109,10 +109,10 @@ public:
   void set_luminance_correct(bool on) { do_luminance_correct_ = on; }
   bool luminance_correct() const { return do_luminance_correct_; }
 
-  // Set brightness in percent; range=1..100
+  // Set brightness in percent; range=0..100
   // This will only affect newly set pixels.
   void SetBrightness(uint8_t b) {
-    brightness_ = (b <= 100 ? (b != 0 ? b : 1) : 100);
+    brightness_ = (b > 100) ? 100 : b;
   }
   uint8_t brightness() { return brightness_; }
 

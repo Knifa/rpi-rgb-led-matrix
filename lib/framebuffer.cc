@@ -627,7 +627,11 @@ inline void Framebuffer::MapColors(
   uint8_t r, uint8_t g, uint8_t b,
   uint16_t *red, uint16_t *green, uint16_t *blue) {
 
-  if (do_luminance_correct_) {
+  if (brightness_ == 0) {
+    *red   = 0;
+    *green = 0;
+    *blue  = 0;
+  } else if (do_luminance_correct_) {
     *red   = CIEMapColor(brightness_, r);
     *green = CIEMapColor(brightness_, g);
     *blue  = CIEMapColor(brightness_, b);

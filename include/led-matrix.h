@@ -265,7 +265,7 @@ public:
   void set_luminance_correct(bool on);
   bool luminance_correct() const;
 
-  // Set brightness in percent for all created FrameCanvas. 1%..100%.
+  // Set brightness in percent for all created FrameCanvas. 0%..100%.
   // This will only affect newly set pixels.
   void SetBrightness(uint8_t brightness);
   uint8_t brightness();
