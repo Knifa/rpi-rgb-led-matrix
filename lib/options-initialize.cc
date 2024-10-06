@@ -361,9 +361,13 @@ void PrintMatrixFlags(FILE *out, const RGBMatrix::Options &d,
           !d.disable_busy_waiting ? "no-" : "",
           !d.disable_busy_waiting ? "Don't u" : "U");
 
-  fprintf(out, "\t--led-slowdown-gpio=<0..4>: "
+   fprintf(out,
+          "\t--led-slowdown-gpio=<%d..4>: "
           "Slowdown GPIO. Needed for faster Pis/slower panels "
-          "(Default: %d (2 on Pi4, 1 other)).\n", r.gpio_slowdown);
+          "(Default: %d (2 on Pi4, 1 other)%s).\n",
+          (LED_MATRIX_ALLOW_BARRIER_DELAY ? -1 : 0), r.gpio_slowdown,
+          LED_MATRIX_ALLOW_BARRIER_DELAY ? "Use -1 for memory barrier approach"
+                                         : "");
   if (r.daemon >= 0) {
     const bool on = (r.daemon > 0);
     fprintf(out,
@@ -453,8 +457,8 @@ bool RGBMatrix::Options::Validate(std::string *err_in) const {
     success = false;
   }
 
-  if (pwm_lsb_nanoseconds < 0 || pwm_lsb_nanoseconds > 3000) {
-    err->append("Invalid range of pwm-lsb-nanoseconds (0..3000 allowed).\n");
+  if (pwm_lsb_nanoseconds < 50 || pwm_lsb_nanoseconds > 3000) {
+    err->append("Invalid range of pwm-lsb-nanoseconds (50..3000 allowed).\n");
     success = false;
   }
 

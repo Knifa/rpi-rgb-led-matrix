@@ -20,6 +20,12 @@
 
 #include <vector>
 
+#if __ARM_ARCH >= 7
+#define LED_MATRIX_ALLOW_BARRIER_DELAY 1
+#else
+#define LED_MATRIX_ALLOW_BARRIER_DELAY 0
+#endif
+
 // Putting this in our namespace to not collide with other things called like
 // this.
 namespace rgb_matrix {
@@ -44,8 +50,8 @@ public:
   gpio_bits_t RequestInputs(gpio_bits_t inputs);
 
   // Set the bits that are '1' in the output. Leave the rest untouched.
-  inline void SetBits(gpio_bits_t value, bool delay = true, int delay_time = -1) {
-    if (delay_time == -1)
+  inline void SetBits(gpio_bits_t value, bool delay = true, int delay_time = -2) {
+    if (delay_time == -2)
       delay_time = slowdown_;
 
     WriteSetBits(value);
@@ -55,8 +61,8 @@ public:
   }
 
   // Clear the bits that are '1' in the output. Leave the rest untouched.
-  inline void ClearBits(gpio_bits_t value, bool delay = true, int delay_time = -1) {
-    if (delay_time == -1)
+  inline void ClearBits(gpio_bits_t value, bool delay = true, int delay_time = -2) {
+    if (delay_time == -2)
       delay_time = slowdown_;
 
     WriteClrBits(value);
@@ -67,8 +73,8 @@ public:
 
   // Write all the bits of "value" mentioned in "mask". Leave the rest untouched.
   inline void WriteMaskedBits(gpio_bits_t value, gpio_bits_t mask, \
-                              bool delay = true, int delay_time = -1) {
-    if (delay_time == -1)
+                              bool delay = true, int delay_time = -2) {
+    if (delay_time == -2)
       delay_time = slowdown_;
 
     WriteClrBits(~value & mask);
@@ -86,11 +92,11 @@ public:
 private:
   inline void Delay(int delay_time) const {
     switch(slowdown_) {
+#if LED_MATRIX_ALLOW_BARRIER_DELAY
       case -1:
-#if __ARM_ARCH >= 7
         asm volatile("dsb\tst");
-#endif
         break;
+#endif
       case 0:
         break;
       default:
