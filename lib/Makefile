@@ -144,6 +144,11 @@ DEFINES+=-DDISABLE_BUSY_WAITING
 # (this is untested right now, waiting for hardware to arrive for testing)
 #DEFINES+=-DENABLE_WIDE_GPIO_COMPUTE_MODULE
 
+# Disables the AwaitInputChange() function. This has an extra mutex lock that
+# might slow down the refresh rate a little bit. If you don't need this, you
+# can disable it.
+DEFINES+=-DDISABLE_GPIO_AWAIT_INPUT_CHANGE
+
 # ---- Pinout options for hardware variants; usually no change needed here ----
 
 # Uncomment if you want to use the Adafruit HAT with stable PWM timings.

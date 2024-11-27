@@ -82,7 +82,7 @@ public:
   void set_luminance_correct(bool on);
   bool luminance_correct() const;
 
-  // Set brightness in percent for all created FrameCanvas. 0%..100%.
+  // Set brightness in percent for all created FrameCanvas. 1%..100%.
   // This will only affect newly set pixels.
   void SetBrightness(uint8_t brightness);
   uint8_t brightness();
@@ -187,14 +187,16 @@ public:
         }
       }
 
-      // Read input bits.
-      // const gpio_bits_t inputs = io_->Read();
-      // if (inputs != last_gpio_bits) {
-      //   last_gpio_bits = inputs;
-      //   MutexLock l(&input_sync_);
-      //   gpio_inputs_ = inputs;
-      //   pthread_cond_signal(&input_change_);
-      // }
+      #ifndef DISABLE_GPIO_INPUT
+        // Read input bits.
+        const gpio_bits_t inputs = io_->Read();
+        if (inputs != last_gpio_bits) {
+          last_gpio_bits = inputs;
+          MutexLock l(&input_sync_);
+          gpio_inputs_ = inputs;
+          pthread_cond_signal(&input_change_);
+        }
+      #endif
 
       ++frame_count;
       ++low_bit_sequence;
@@ -425,17 +427,17 @@ RGBMatrix::~RGBMatrix() {
 }
 
 uint64_t RGBMatrix::Impl::RequestInputs(uint64_t bits) {
-  return io_->RequestInputs(bits);
+  return io_->RequestInputs(static_cast<gpio_bits_t>(bits));
 }
 
 uint64_t RGBMatrix::Impl::RequestOutputs(uint64_t output_bits) {
-  uint64_t success_bits = io_->InitOutputs(output_bits);
+  uint64_t success_bits = io_->InitOutputs(static_cast<gpio_bits_t>(output_bits));
   user_output_bits_ |= success_bits;
   return success_bits;
 }
 
 void RGBMatrix::Impl::OutputGPIO(uint64_t output_bits) {
-  io_->WriteMaskedBits(output_bits, user_output_bits_);
+  io_->WriteMaskedBits(static_cast<gpio_bits_t>(output_bits), static_cast<gpio_bits_t>(user_output_bits_));
 }
 
 void RGBMatrix::Impl::ApplyNamedPixelMappers(const char *pixel_mapper_config,
@@ -657,8 +659,10 @@ RGBMatrix *RGBMatrix::CreateFromOptions(const RGBMatrix::Options &options,
     return NULL;
   }
 
+  // For the Pi4, we might need 2, maybe up to 4. Let's open up to 5.
   // on supproted architectures, -1 will emit memory barier (DSB ST) after GPIO write
-  if (runtime_options.gpio_slowdown < (__ARM_ARCH >= 7 ? -1 : 0)) {
+  if (runtime_options.gpio_slowdown < (LED_MATRIX_ALLOW_BARRIER_DELAY ? -1 : 0)
+      || runtime_options.gpio_slowdown > 5) {
     fprintf(stderr, "--led-slowdown-gpio=%d is outside usable range\n",
             runtime_options.gpio_slowdown);
     return NULL;
